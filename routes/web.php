@@ -1,10 +1,57 @@
 <?php
 
-use App\Http\Controllers\Admin\ImpersonationController;
+use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\ProfileController;
+use App\Support\CurrentTenant;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+/**
+ * Global patterns
+ * - Restrict what a {tenant} can be (letters, numbers, hyphen)
+ */
+Route::pattern('tenant', '[A-Za-z0-9\-]+');
+
+/**
+ * Landing (no tenant)
+ */
+Route::get('/', function () {
+    return view('welcome');
+})->name('landing');
+
+/**
+ * Breeze "dashboard" without tenant:
+ * After login, send the user to /{tenant}/dashboard based on their tenant_id.
+ */
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardRedirectController::class, 'toTenant'])->name('dashboard.redirect');
+    Route::get('/settings', [DashboardRedirectController::class, 'toTenantSettings'])->name('settings.redirect');
+});
+
+/**
+ * Tenant routes: invofy.test/{tenant}/...
+ * Order matters: keep this AFTER the non-tenant /dashboard and /settings routes
+ */
+Route::prefix('{tenant}')
+    ->middleware(['tenant', 'permissions.team', 'auth']) // tenant resolution -> set team -> require login
+    ->group(function () {
+        Route::get('/dashboard', function () {
+            $tenant = app(CurrentTenant::class)->tenant();
+            return "Tenant dashboard for: " . ($tenant?->name ?? 'Unknown');
+        })->name('tenant.dashboard');
+
+        // Example tenant-only page (Owner|Admin required). Adjust roles as needed.
+        Route::get('/settings', function () {
+            return 'Tenant Settings';
+        })->middleware('role:Owner|Admin')->name('tenant.settings');
+    });
+
+/**
+ * Auth routes (Breeze) are already registered by Breeze's install.
+ * If not, ensure auth scaffold is installed.
+ */
+
 
 //Route::get('/', function () {
 //    return Inertia::render('Welcome', [
@@ -14,44 +61,15 @@ use Inertia\Inertia;
 //        'phpVersion' => PHP_VERSION,
 //    ]);
 //});
-//
+
 //Route::get('/dashboard', function () {
 //    return Inertia::render('Dashboard');
 //})->middleware(['auth', 'verified'])->name('dashboard');
-//
-//Route::middleware('auth')->group(function () {
-//    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-//    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-//    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-//    Route::get('/admin/impersonate/{tenantId}', [ImpersonationController::class, 'start'])->name('admin.impersonate.start');
-//    Route::get('/admin/impersonate/stop', [ImpersonationController::class, 'stop'])->name('admin.impersonate.stop');
-//
-//});
 
-Route::get('/', function () {
-    return view('welcome'); // your landing page
-})->name('landing');
-
-/**
- * Tenant routes: invofy.test/{tenant}/...
- * You can add auth middleware inside this group later.
- */
-Route::prefix('{tenant}')
-    ->middleware(['tenant']) // resolves CurrentTenant from first URL segment
-    ->group(function () {
-
-        Route::get('/dashboard', function () {
-            // Example tenant-aware page; replace with a controller later
-            $tenant = app(\App\Support\CurrentTenant::class)->tenant();
-            return "Tenant dashboard for: " . ($tenant?->name ?? 'Unknown');
-        })->name('tenant.dashboard');
-
-        // Add more tenant routes here, e.g. invoices, customers, etc.
-    });
-
-Route::middleware(['web'])->group(function () {
-    Route::get('/admin/impersonate/{tenantId}', [ImpersonationController::class, 'start'])->name('admin.impersonate.start');
-    Route::get('/admin/impersonate/stop', [ImpersonationController::class, 'stop'])->name('admin.impersonate.stop');
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__.'/auth.php';

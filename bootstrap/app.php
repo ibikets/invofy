@@ -18,6 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'tenant' => \App\Http\Middleware\IdentifyTenantFromPath::class,
+
+            // NEW: set Spatie team (tenant) context after tenant resolution
+            'permissions.team' => \App\Http\Middleware\SetPermissionsTeamFromTenant::class,
+
+            // Spatie route middleware (so you can protect routes: ->middleware('role:Owner'), etc.)
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+
         ]);
 
         //
