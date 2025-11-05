@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Tenant\CustomersController;
+use App\Http\Controllers\Tenant\VendorsController;
 use App\Support\CurrentTenant;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +42,23 @@ Route::prefix('{tenant}')
             $tenant = app(CurrentTenant::class)->tenant();
             return "Tenant dashboard for: " . ($tenant?->name ?? 'Unknown');
         })->name('tenant.dashboard');
+
+        // Directory — protect with role if you want (Owner/Admin/Finance)
+        Route::middleware(['role:Owner|Admin|Finance'])->group(function () {
+            // Customers
+            Route::get('/customers', [CustomersController::class, 'index'])->name('customers.index');
+            Route::post('/customers', [CustomersController::class, 'store'])->name('customers.store');
+            Route::get('/customers/{customer}', [CustomersController::class, 'show'])->name('customers.show');
+            Route::match(['put','patch'], '/customers/{customer}', [CustomersController::class, 'update'])->name('customers.update');
+            Route::delete('/customers/{customer}', [CustomersController::class, 'destroy'])->name('customers.destroy');
+
+            // Vendors
+            Route::get('/vendors', [VendorsController::class, 'index'])->name('vendors.index');
+            Route::post('/vendors', [VendorsController::class, 'store'])->name('vendors.store');
+            Route::get('/vendors/{vendor}', [VendorsController::class, 'show'])->name('vendors.show');
+            Route::match(['put','patch'], '/vendors/{vendor}', [VendorsController::class, 'update'])->name('vendors.update');
+            Route::delete('/vendors/{vendor}', [VendorsController::class, 'destroy'])->name('vendors.destroy');
+        });
 
         // Example tenant-only page (Owner|Admin required). Adjust roles as needed.
         Route::get('/settings', function () {
