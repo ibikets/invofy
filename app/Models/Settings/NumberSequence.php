@@ -1,31 +1,25 @@
 <?php
 
-namespace App\Models\Directory;
+namespace App\Models\Settings;
 
 use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
-class Vendor extends Model
+class NumberSequence extends Model
 {
     use HasUlids, BelongsToTenant;
 
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $table = 'vendors';
+    protected $table = 'number_sequences';
 
     protected $fillable = [
-        'tenant_id',
-        'display_name',
-        'email',
-        'phone',
-        'address',
-        'custom_fields',
-        'status',
+        'tenant_id','entity_type','prefix','padding','next_number',
     ];
 
     protected $casts = [
-        'address' => 'array',
-        'custom_fields' => 'array',
+        'padding' => 'integer',
+        'next_number' => 'integer',
     ];
 }

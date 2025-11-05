@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             DemoTenantSeeder::class,
             TenantRolesSeeder::class,
             DemoDirectorySeeder::class,
+            DemoFinanceSeeder::class,
         ]);
 
     }

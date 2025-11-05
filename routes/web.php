@@ -60,7 +60,41 @@ Route::prefix('{tenant}')
             Route::delete('/vendors/{vendor}', [VendorsController::class, 'destroy'])->name('vendors.destroy');
         });
 
-        // Example tenant-only page (Owner|Admin required). Adjust roles as needed.
+        Route::middleware(['role:Owner|Admin|Finance'])->group(function () {
+
+            // Items
+            Route::get('/items', [ItemsController::class, 'index'])->name('items.index');
+            Route::post('/items', [ItemsController::class, 'store'])->name('items.store');
+            Route::get('/items/{item}', [ItemsController::class, 'show'])->name('items.show');
+            Route::match(['put','patch'], '/items/{item}', [ItemsController::class, 'update'])->name('items.update');
+            Route::delete('/items/{item}', [ItemsController::class, 'destroy'])->name('items.destroy');
+
+            // Taxes
+            Route::get('/taxes', [TaxesController::class, 'index'])->name('taxes.index');
+            Route::post('/taxes', [TaxesController::class, 'store'])->name('taxes.store');
+            Route::get('/taxes/{tax}', [TaxesController::class, 'show'])->name('taxes.show');
+            Route::match(['put','patch'], '/taxes/{tax}', [TaxesController::class, 'update'])->name('taxes.update');
+            Route::delete('/taxes/{tax}', [TaxesController::class, 'destroy'])->name('taxes.destroy');
+
+            // Tax Profiles
+            Route::get('/tax-profiles', [TaxProfilesController::class, 'index'])->name('tax_profiles.index');
+            Route::post('/tax-profiles', [TaxProfilesController::class, 'store'])->name('tax_profiles.store');
+            Route::get('/tax-profiles/{taxProfile}', [TaxProfilesController::class, 'show'])->name('tax_profiles.show');
+            Route::match(['put','patch'], '/tax-profiles/{taxProfile}', [TaxProfilesController::class, 'update'])->name('tax_profiles.update');
+            Route::delete('/tax-profiles/{taxProfile}', [TaxProfilesController::class, 'destroy'])->name('tax_profiles.destroy');
+
+            // Number Sequences
+            Route::get('/number-sequences', [NumberSequencesController::class, 'index'])->name('seq.index');
+            Route::post('/number-sequences', [NumberSequencesController::class, 'store'])->name('seq.store');
+            Route::get('/number-sequences/{numberSequence}', [NumberSequencesController::class, 'show'])->name('seq.show');
+            Route::match(['put','patch'], '/number-sequences/{numberSequence}', [NumberSequencesController::class, 'update'])->name('seq.update');
+            Route::delete('/number-sequences/{numberSequence}', [NumberSequencesController::class, 'destroy'])->name('seq.destroy');
+
+            // Convenience: preview next number for an entity
+            Route::get('/number-sequences/next/{entity}', [NumberSequencesController::class, 'next'])->name('seq.next');
+        });
+
+            // Example tenant-only page (Owner|Admin required). Adjust roles as needed.
         Route::get('/settings', function () {
             return 'Tenant Settings';
         })->middleware('role:Owner|Admin')->name('tenant.settings');
