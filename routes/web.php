@@ -3,6 +3,8 @@
 use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Tenant\CustomersController;
+use App\Http\Controllers\Tenant\EstimatesController;
+use App\Http\Controllers\Tenant\InvoicesController;
 use App\Http\Controllers\Tenant\VendorsController;
 use App\Support\CurrentTenant;
 use Illuminate\Foundation\Application;
@@ -92,6 +94,21 @@ Route::prefix('{tenant}')
 
             // Convenience: preview next number for an entity
             Route::get('/number-sequences/next/{entity}', [NumberSequencesController::class, 'next'])->name('seq.next');
+
+            // Estimates
+            Route::get('/estimates', [EstimatesController::class, 'index'])->name('estimates.index');
+            Route::post('/estimates', [EstimatesController::class, 'store'])->name('estimates.store');
+            Route::get('/estimates/{estimate}', [EstimatesController::class, 'show'])->name('estimates.show');
+            Route::match(['put','patch'], '/estimates/{estimate}', [EstimatesController::class, 'update'])->name('estimates.update');
+            Route::post('/estimates/{estimate}/status', [EstimatesController::class, 'setStatus'])->name('estimates.status');
+
+            // Invoices
+            Route::get('/invoices', [InvoicesController::class, 'index'])->name('invoices.index');
+            Route::post('/invoices', [InvoicesController::class, 'store'])->name('invoices.store');
+            Route::get('/invoices/{invoice}', [InvoicesController::class, 'show'])->name('invoices.show');
+            Route::match(['put','patch'], '/invoices/{invoice}', [InvoicesController::class, 'update'])->name('invoices.update');
+            Route::post('/invoices/{invoice}/status', [InvoicesController::class, 'setStatus'])->name('invoices.status');
+
         });
 
             // Example tenant-only page (Owner|Admin required). Adjust roles as needed.
